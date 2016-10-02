@@ -12,6 +12,7 @@ import re
 # Change this line to point to your alma binary
 #ALMA_BIN="/home/jyna/Alfred/Alma/alma"
 ALMA_BIN="/home/mcl/ROS/bobdemo_ws/src/alma_ros/src/alma"
+#ALMA_BIN="/home/justin/catkin_ws/src/alma_ros/src/alma"
 DEBUG=False
 
 
@@ -128,6 +129,9 @@ Read commands on the command topic and send them to alma.
 def alma_cmd_callback(data):
     global io
     cmd_string = data.data
+
+    load_parse =  re.compile('load\(\"(\\S+)\"\)')
+    
     #Be kind to users; alma hangs if the last char is not a period
     if (cmd_string[-1] != '.'):
         cmd_string = cmd_string + '.'
@@ -136,7 +140,14 @@ def alma_cmd_callback(data):
         rospy.sleep(3)
         io = alma_io(ALMA_BIN)
     else:
-        io.write(cmd_string)
+        m = load_parse.match(cmd_string)
+        if m:
+            filename = m.group(1)
+            cmd = "af(eval_bound(lf(\"" + filename + "\") , [] ))."
+            sys.stderr.write("Sending: " + cmd)
+            io.write(cmd)
+        else:
+            io.write(cmd_string)
 
 
 
@@ -181,8 +192,9 @@ def list_to_msg(db_list):
     parse = re.compile("\\s*distrusted\((\\d+),(\\d+)\)")
     for line in db_list:
         # lines are of the form  CODE: FMLA
+        # 10/1/2016:  Codes aren't necessarily integers; they are strings for named formulae.
         linep = line.split(':')
-        code = int(linep[0])
+        code = linep[0]
         fmla = linep[1]
         
         # Is this a distrust formula?  If so, mark the distrusted formula as distrusted.

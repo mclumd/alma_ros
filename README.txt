@@ -26,6 +26,8 @@ How to run for our demo purposes
             rostopic pub -1 /alma_node_cmd std_msgs/String -- 'af(not p).'
     6.2) To see what is being published in alma_db rostopic do the following command
             rostopic echo /alma_db
+    6.3) To load a file
+    	    rostopic pub -1 /alma_node_cmd std_msgs/String -- 'load("PATH_TO_ALMA/demo/tweet.pl")'
 
 7)  Using in other ROS nodes:
     7.1)  Commands are published to /alma_node_cmd with type string.
